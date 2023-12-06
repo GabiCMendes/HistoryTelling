@@ -28,7 +28,9 @@ export default class StoryCard extends Component {
       fontsLoaded: false,
       light_theme: true,
       story_id: this.props.story.key,
-      story_data: this.props.story.value
+      story_data: this.props.story.value,
+      is_liked: false,
+      likes: this.props.story.value.likes
     };
   }
 
@@ -54,6 +56,25 @@ export default class StoryCard extends Component {
         light_theme: theme === "light" ? true : false,
     });
   } 
+
+  likeAction=()=>{
+    if (this.state.is_liked) {
+      firebase.database()
+      .ref("posts")
+      .child(this.state.story_id)
+      .child("likes")
+      .set(firebase.database.ServerValue.increment(-1))
+      this.setState({likes: this.state.likes -= 1, is_liked:false})
+    }else{
+      firebase.database()
+      .ref("posts")
+      .child(this.state.story_id)
+      .child("likes")
+      .set(firebase.database.ServerValue.increment(1))
+      this.setState({likes: this.state.likes += 1, is_liked:true})
+    }
+
+  }
 
   render() {
     var story = this.state.story_data
@@ -87,10 +108,12 @@ export default class StoryCard extends Component {
               </Text>
             </View>
             <View style={styles.actionContainer}>
-              <View style={styles.likeButton}>
-                <Ionicons name={"heart"} size={RFValue(30)} color={"white"} />
-                <Text style={this.state.light_theme? styles.likeTextLight :styles.likeText}>12k</Text>
-              </View>
+              <TouchableOpacity style={this.state.is_liked? styles.likeButtonLiked :styles.likeButtonDisliked}
+              onPress = {()=> this.likeAction()}
+              >
+                <Ionicons name={"heart"} size={RFValue(30)} color={this.state.light_theme?"black":"white"} />
+                <Text style={this.state.light_theme? styles.likeTextLight :styles.likeText}>{this.state.likes}</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </TouchableOpacity>
@@ -176,7 +199,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: RFValue(10)
   },
-  likeButton: {
+  likeButtonLiked: {
     width: RFValue(160),
     height: RFValue(40),
     justifyContent: "center",
@@ -185,15 +208,27 @@ const styles = StyleSheet.create({
     backgroundColor: "#eb3948",
     borderRadius: RFValue(30)
   },
+  likeButtonDisliked: {
+    width: RFValue(160),
+    height: RFValue(40),
+    justifyContent: "center",
+    alignItems: "center",
+    flexDirection: "row",
+    borderColor: "#eb3948",
+    borderWidth: 2,
+    borderRadius: RFValue(30)
+  },
   likeText: {
     color: "white",
     fontFamily: "Bubblegum-Sans",
-    fontSize: RFValue(25),
-    marginLeft: RFValue(5)
+    fontSize: 25,
+    marginLeft: 25,
+    marginTop: 6
   },
   likeTextLight: {
     fontFamily: "Bubblegum-Sans",
-    fontSize: RFValue(25),
-    marginLeft: RFValue(5)
+    fontSize: 25,
+    marginLeft: 25,
+    marginTop: 6
   }
 });

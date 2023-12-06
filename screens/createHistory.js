@@ -66,6 +66,7 @@ export default class CreateHistory extends React.Component {
             await firebase.database().ref("/posts/" +  Math.random().toString(36).slice(2))
                           .set(storyData)
                           .then( function(snapshot) {
+                            this.props.setUpdateToTrue();
                             this.props.navigation.navigate("Feed")
                           })
         } else {

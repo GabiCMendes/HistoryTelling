@@ -33,7 +33,9 @@ export default class StoryScreen extends Component {
       speakerIcon: "volume-high-outline",
       light_theme: true,
       story_id: this.props.route.params.story_id,
-      story_data: this.props.route.params.story
+      story_data: this.props.route.params.story,
+      likes: this.props.route.params.story.story.likes,
+      is_liked: false
     };
   }
 
@@ -45,6 +47,25 @@ export default class StoryScreen extends Component {
   componentDidMount() {
     this._loadFontsAsync();
     this.fetchUser()
+  }
+
+  likeAction=()=>{
+    if (this.state.is_liked) {
+      firebase.database()
+      .ref("posts")
+      .child(this.state.story_id)
+      .child("likes")
+      .set(firebase.database.ServerValue.increment(-1))
+      this.setState({likes: this.state.likes -= 1, is_liked:false})
+    }else{
+      firebase.database()
+      .ref("posts")
+      .child(this.state.story_id)
+      .child("likes")
+      .set(firebase.database.ServerValue.increment(1))
+      this.setState({likes: this.state.likes += 1, is_liked:true})
+    }
+
   }
 
   async initiateTTS(title, author, story, moral) {
@@ -80,6 +101,13 @@ export default class StoryScreen extends Component {
       this.props.navigation.navigate("Home");
     } else if (this.state.fontsLoaded) {
       SplashScreen.hideAsync();
+      let images = {
+        image_1: require("../assets/story_image_1.png"),
+        image_2: require("../assets/story_image_2.png"),
+        image_3: require("../assets/story_image_3.png"),
+        image_4: require("../assets/story_image_4.png"),
+        image_5: require("../assets/story_image_5.png")
+      };
       return (
         <View style={this.state.light_theme? styles.containerLight :styles.container}>
           <SafeAreaView style={styles.droidSafeArea} />
@@ -97,7 +125,7 @@ export default class StoryScreen extends Component {
           <View style={styles.storyContainer}>
             <ScrollView style={this.state.light_theme? styles.storyCardLight :styles.storyCard}>
               <Image
-                source={require("../assets/story_image_1.png")}
+                source={images[this.props.route.params.story.preview_image]}
                 style={styles.image}
               ></Image>
 
@@ -142,10 +170,13 @@ export default class StoryScreen extends Component {
                 </Text>
               </View>
               <View style={styles.actionContainer}>
-                <View style={styles.likeButton}>
-                  <Ionicons name={"heart"} size={RFValue(30)} color={"white"} />
-                  <Text style={this.state.light_theme? styles.likeTextLight :styles.likeText}>12k</Text>
-                </View>
+              <TouchableOpacity style={this.state.is_liked? styles.likeButtonLiked :styles.likeButtonDisliked}
+              onPress = {()=> this.likeAction()}
+              >
+                <Ionicons name={"heart"} size={RFValue(30)} color={this.state.light_theme?"black":"white"} />
+                <Text style={this.state.light_theme? styles.likeTextLight :styles.likeText}>{this.state.likes}</Text>
+              </TouchableOpacity>
+                
               </View>
             </ScrollView>
           </View>
@@ -282,14 +313,24 @@ const styles = StyleSheet.create({
     alignItems: "center",
     margin: RFValue(10)
   },
-  likeButton: {
+  likeButtonLiked: {
+    flexDirection: "row",
     width: RFValue(160),
     height: RFValue(40),
-    flexDirection: "row",
-    backgroundColor: "#eb3948",
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "#eb3948",
     borderRadius: RFValue(30)
+  },
+  likeButtonDisliked: {
+    flexDirection: "row",
+    width: RFValue(160),
+    height: RFValue(40),
+    justifyContent: "center",
+    alignItems: "center",
+    borderColor: "#eb3948",
+    borderRadius: RFValue(30),
+    borderWidth: 2
   },
   likeText: {
     color: "white",

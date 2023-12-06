@@ -14,7 +14,8 @@ export default class MyTabs extends React.Component {
   constructor() {
     super()
     this.state = {
-      light_theme: true
+      light_theme: true,
+      isUpdated: false
     }
   }
   async fetchUser() {
@@ -32,6 +33,23 @@ export default class MyTabs extends React.Component {
 componentDidMount() {
   this.fetchUser()
 }
+
+renderFeed = props => {
+  return <Feed setUpdateToFalse={this.removeUpdated} {...props} />;
+};
+
+renderStory = props => {
+  return <CreateHistory setUpdateToTrue={this.changeUpdated} {...props} />;
+};
+
+changeUpdated = () => {
+  this.setState({ isUpdated: true });
+};
+
+removeUpdated = () => {
+  this.setState({ isUpdated: false });
+};
+
 render() {
 
 
@@ -60,8 +78,8 @@ render() {
         activeColor={"#ee8249"}
         inactiveColor={"gray"}
       >
-        <Tab.Screen name="Feed" component={Feed} />
-        <Tab.Screen name="CreateHistory" component={CreateHistory} />
+        <Tab.Screen name="Feed" component={this.renderFeed} options={{ unmountOnBlur: true }}/>
+        <Tab.Screen name="CreateHistory" component={this.renderStory} options={{ unmountOnBlur: true }}/>
       </Tab.Navigator>
     );
   }

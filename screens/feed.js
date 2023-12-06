@@ -63,7 +63,7 @@ export default class Feed extends React.Component {
             });
           }
           this.setState({ stories: stories });
-          // this.props.setUpdateToFalse();
+          this.props.setUpdateToFalse();
         },
         function (errorObject) {
           console.log("A leitura falhou: " + errorObject.code);
