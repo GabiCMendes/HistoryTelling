@@ -31,7 +31,9 @@ export default class StoryScreen extends Component {
       fontsLoaded: false,
       speakerColor: "gray",
       speakerIcon: "volume-high-outline",
-      light_theme: true
+      light_theme: true,
+      story_id: this.props.route.params.story_id,
+      story_data: this.props.route.params.story
     };
   }
 
@@ -42,6 +44,7 @@ export default class StoryScreen extends Component {
 
   componentDidMount() {
     this._loadFontsAsync();
+    this.fetchUser()
   }
 
   async initiateTTS(title, author, story, moral) {
@@ -58,6 +61,19 @@ export default class StoryScreen extends Component {
       Speech.stop();
     }
   }
+
+  async fetchUser() {
+    let theme;
+    await firebase
+        .database()
+        .ref("/users/" + firebase.auth().currentUser.uid)
+        .on("value", function (snapshot) {
+            theme = snapshot.val().current_theme;
+        });
+    this.setState({
+        light_theme: theme === "light" ? true : false,
+    });
+  } 
 
   render() {
     if (!this.props.route.params) {

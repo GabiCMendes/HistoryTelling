@@ -28,7 +28,7 @@ export default class MyTabs extends React.Component {
     this.setState({
         light_theme: theme === "light" ? true : false,
     });
-}
+  } 
 componentDidMount() {
   this.fetchUser()
 }

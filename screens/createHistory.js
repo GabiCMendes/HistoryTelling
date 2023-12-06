@@ -1,6 +1,5 @@
-import { CurrentRenderContext } from "@react-navigation/native";
 import React from "react";
-import { Text, StyleSheet, View, SafeAreaView, Image, TextInput, Platform, StatusBar, ScrollView } from "react-native";
+import { Text, StyleSheet, View, SafeAreaView, Image, TextInput, Platform, StatusBar, ScrollView, Alert,Button} from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
 import firebase from "firebase";
 import { RFValue } from "react-native-responsive-fontsize";
@@ -29,6 +28,54 @@ export default class CreateHistory extends React.Component {
 
     componentDidMount() {
         this._loadFontsAsync();
+        this.fetchUser();
+    }
+
+    async fetchUser() {
+        let theme;
+        await firebase
+            .database()
+            .ref("/users/" + firebase.auth().currentUser.uid)
+            .on("value", function (snapshot) {
+                theme = snapshot.val().current_theme;
+            });
+        this.setState({
+            light_theme: theme === "light" ? true : false,
+        });
+    } 
+
+    addStory = async () => {
+        if (
+            this.state.title &&
+            this.state.description &&
+            this.state.story &&
+            this.state.moral
+        ) {
+            let storyData ={
+                preview_image: this.state.previewImage,
+                title: this.state.title,
+                description: this.state.description,
+                story: this.state.story,
+                moral: this.state.moral,
+                author: firebase.auth().currentUser.displayName,
+                created_on: new Date(),
+                author_uid: firebase.auth().currentUser.uid,
+                likes: 0
+            }
+
+            await firebase.database().ref("/posts/" +  Math.random().toString(36).slice(2))
+                          .set(storyData)
+                          .then( function(snapshot) {
+                            this.props.navigation.navigate("Feed")
+                          })
+        } else {
+            Alert.alert(
+                "Error",
+                "Todos os campos são obrigatórios!",
+                [{ text: "OK", onPress: () => console.log("OK Pressionado") }],
+                { cancelable: false }
+            );
+        }
     }
     render() {
         if (this.state.fontsLoaded) {
@@ -143,6 +190,13 @@ export default class CreateHistory extends React.Component {
                                 numberOfLines={4}
                                 placeholderTextColor="white"
                             />
+                            <View style={styles.submitButton}>
+                                <Button
+                                    onPress={() => this.addStory()}
+                                    title="Submit"
+                                    color="#841584"
+                                />
+                            </View>
                         </ScrollView>
                     </View>
                     <View style = {{flex: 0.08}}/>
@@ -235,5 +289,10 @@ const styles = StyleSheet.create({
     inputTextBig: {
       textAlignVertical: "top",
       padding: RFValue(5)
+    },
+    submitButton: {
+        marginTop: RFValue(20),
+        alignItems: "center",
+        justifyContent: "center"
     }
   });
